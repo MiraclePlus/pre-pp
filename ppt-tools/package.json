@@ -1,0 +1,15 @@
+{
+  "name": "ppt-tools",
+  "version": "1.0.0",
+  "description": "pre-PP skill Node dependencies for PPTX generation and HTML-to-PPTX conversion",
+  "private": true,
+  "scripts": {
+    "postinstall": "npx playwright install chromium || true"
+  },
+  "dependencies": {
+    "pptxgenjs": "^4.0.1",
+    "sharp": "^0.34.5",
+    "playwright": "^1.60.0",
+    "lucide-static": "^1.16.0"
+  }
+}
