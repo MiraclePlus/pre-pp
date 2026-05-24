@@ -1,0 +1,2 @@
+python-pptx>=1.0.0
+markitdown>=0.1.0
