@@ -6,7 +6,8 @@ description: >-
   Pre Pitch Practice — 路演PPT迭代助手
 
   在正式 PP 评估之前，帮助创始人从零到一制作/迭代路演 deck。
-  支持：大纲生成、PPT 制作（PDF/PPTX/HTML）、逐页打磨、视觉优化。
+  支持：大纲生成、PPT 制作（飞书Slides/PDF/PPTX/HTML）、逐页打磨、视觉优化。
+  默认输出飞书 Slides（云端渲染，字体无忧，在线协作）。
   当用户提到"做PPT"、"改PPT"、"迭代deck"、"准备路演材料"、"pre PP"时触发。
 trigger:
   - pre-pp, pre PP, pre-PP, 做PPT, 改PPT, 迭代deck, 准备路演, 制作deck, PPT迭代, 路演材料制作
@@ -32,7 +33,7 @@ tags:
 
 | 模式 | 触发条件 | 输出 |
 |------|---------|------|
-| **制作模式** | 用户说"做/写/生成 deck" | 从零生成 PDF + PPTX |
+| **制作模式** | 用户说"做/写/生成 deck" | 从零生成飞书 Slides（默认）/ HTML / PPTX |
 | **审阅模式** | 用户提供 PDF/PPT/截图 + "帮我看看/改改/优化" | 逐页修改建议 + 重写方案 |
 | **规划模式** | 用户提供 Markdown 分页文档 | 结构评审 + 内容补全 + 生成 deck |
 
@@ -54,11 +55,47 @@ tags:
 - **python-pptx** — Python 端 PPTX 读写
 - **markitdown** — PPTX 文本提取分析
 
+### 字体规则（PPTX 生成必读）
+
+**核心原则**：PPTX 必须使用目标电脑上已预装的系统字体。用户电脑通常没有 Google Fonts（Inter、Noto Sans SC 等），缺失字体会导致 PowerPoint 自动替换，造成排版严重走样（文字溢出、行距错乱、元素重叠）。
+
+**PPTX 安全字体表**（按优先级）：
+
+| 用途 | Windows 安全字体 | macOS 安全字体 | 跨平台最安全 |
+|------|-----------------|---------------|-------------|
+| 英文标题 | Arial Black, Calibri Bold | Helvetica Neue Bold | **Arial Bold** |
+| 英文正文 | Calibri, Segoe UI | Helvetica Neue | **Arial** |
+| 中文标题 | Microsoft YaHei Bold, 微软雅黑 粗体 | PingFang SC Semibold | **Microsoft YaHei Bold** |
+| 中文正文 | Microsoft YaHei, 微软雅黑 | PingFang SC | **Microsoft YaHei** |
+| 数字/数据 | Arial, Calibri | Helvetica Neue | **Arial** |
+
+**生成规则**：
+1. PPTX 中 `fontFace` 只允许使用上表中的字体，禁止使用 Inter / Noto Sans SC / Source Han Sans 等需额外安装的字体
+2. HTML deck 不受此限制（浏览器会通过 Google Fonts CDN 加载）
+3. 如果项目要求特殊字体（如品牌字体），必须在输出说明中注明"需安装 XX 字体"
+4. 数字和英文统一用 Arial（等宽感强，大数字显示清晰）
+5. 中文统一用 Microsoft YaHei（Windows/macOS 双端覆盖率最高的中文字体）
+
+**字体对照表**（HTML → PPTX 映射）：
+
+| HTML (Google Fonts) | PPTX 替代 |
+|---------------------|-----------|
+| Inter | Arial |
+| Noto Sans SC | Microsoft YaHei |
+| Source Han Sans | Microsoft YaHei |
+| Montserrat | Arial |
+| Roboto | Calibri |
+| Georgia | Georgia (安全) |
+
 输出格式选择：
 | 格式 | 命令 | 适用场景 |
 |------|------|---------|
-| PDF + PPTX | 默认 | 路演日提交、多人协作、打印分发 |
+| **飞书 Slides** | `--format feishu`（默认） | 云端渲染、字体无忧、在线协作、一键分享 |
+| PDF + PPTX | `--format pptx` | 路演日提交、打印分发（有字体风险） |
 | 网页 HTML deck | `--format html` | 快速预览、高视觉品质、自带动效 |
+
+> **默认输出为飞书 Slides**。原因：云端渲染字体一致（思源黑体），不受用户电脑环境影响；
+> PPTX 依赖本地字体，缺失字体会导致排版严重走样。仅在用户明确要求 .pptx 文件时才用 PPTX 模式。
 
 ## 执行流程
 
@@ -148,10 +185,10 @@ tags:
 **After**: "中国XXX市场年规模800亿，但80%仍在用Excel管理。"
 
 ## 合伙人快评
-- 🧠 陆奇：{一句话}
-- 💼 Max：{一句话}
-- 📊 Peter：{一句话}
-- ⚡ Xuwen：{一句话}
+- 陆奇：{一句话}
+- Max：{一句话}
+- Peter：{一句话}
+- Xuwen：{一句话}
 
 ## 下一步
 1. {最高优先级修改}
@@ -204,27 +241,97 @@ tags:
 
 ### Phase 3: 制作输出（Build）
 
-#### 模式 A：PDF + PPTX（默认）
+**默认输出目录**：`/home/ubuntu/AI_First/PP评估/decks/`（所有格式统一放此处）
+
+#### 模式 A：飞书 Slides（默认，`--format feishu`）
+
+通过 `lark-cli slides` API 程序化创建飞书演示文稿，云端渲染。
+
+**技术要点**：
+- 画布尺寸：960 × 540（飞书固定 16:9）
+- 字体：飞书统一渲染为 `思源黑体`（Source Han Sans），无需指定 fontFamily
+- 颜色格式：必须使用 `rgba(R,G,B,A)`；渐变色必须带百分比停靠点
+- XML namespace：`http://www.larkoffice.com/sml/2.0`
+- 坐标属性：`topLeftX/topLeftY/width/height`（不是 x/y/w/h）
+- 形状类型：`type="text"`（文本框）、`type="rect"`（矩形卡片）
+- 图片：仅支持 `file_token`（先 `+media-upload` 上传），禁止 http 外链
+
+**参考文档**（生成前必读，位于 `./references/lark-slides/`）：
+
+| 文档 | 何时读取 |
+|------|---------|
+| `xml-schema-quick-ref.md` | 每次生成 XML 前必读，坐标/颜色/元素语法 |
+| `validation-checklist.md` | 创建完成后必读，验证空白页/溢出/重叠 |
+| `troubleshooting.md` | 遇到错误码时查阅（3350001/4001000 等） |
+| `lark-slides-create.md` | 新建演示文稿时参考 |
+| `lark-slides-replace-slide.md` | 编辑已有页面时参考（block_replace/block_insert） |
+| `lark-slides-media-upload.md` | 上传图片时参考 |
+| `visual-planning.md` | 规划每页视觉重心时参考 |
+| `slides_xml_schema_definition.xml` | XML 协议终极权威来源 |
+
+**生成后自动验证**（按 validation-checklist.md 执行）：
+1. `xml_presentations.get` 回读全文 XML
+2. 核对页数是否正确
+3. 检查是否有空白页（`<data>` 内无元素）
+4. 检查文字是否溢出画布边界（topLeftX + width > 960 或 topLeftY + height > 540）
+5. 检查元素是否重叠（相邻 shape 坐标是否冲突）
+
+**创建流程**：
+```bash
+# 1. 创建演示文稿
+lark-cli slides +create --title "{项目名} - Demo Day Pitch" --as bot
+
+# 2. 逐页添加（用 jq 处理 XML 转义）
+lark-cli slides xml_presentation.slide create --as bot \
+  --params '{"xml_presentation_id":"<ID>"}' \
+  --data "$(jq -n --arg content '<slide ...>...</slide>' '{slide:{content:$content}}')"
+
+# 3. 设置权限（按 CLAUDE.md 飞书权限规则）
+lark-cli drive permission.members create --as bot \
+  --params '{"token": "<ID>", "type": "slides"}' \
+  --data '{"member_id": "<union_id>", "member_type": "unionid", "perm": "full_access", "type": "user"}'
+```
+
+**飞书 Slides XML 模板**（最小可用）：
+```xml
+<slide xmlns="http://www.larkoffice.com/sml/2.0">
+  <style>
+    <fill><fillColor color="linear-gradient(135deg,rgba(11,10,26,1) 0%,rgba(45,27,105,1) 100%)"/></fill>
+  </style>
+  <data>
+    <shape type="text" topLeftX="80" topLeftY="80" width="800" height="60">
+      <content textType="headline" color="rgba(255,255,255,1)" fontSize="28" bold="true" textAlign="center">
+        <p>标题文字</p>
+      </content>
+    </shape>
+  </data>
+</slide>
+```
+
+**输出**：飞书 Slides 链接（可直接在线演示/编辑/协作）
+
+#### 模式 B：PDF + PPTX（`--format pptx`）
 
 流程：PptxGenJS 程序化生成 .pptx → Playwright 渲染为 PDF
 - 每页 720pt x 405pt（16:9）
 - 可参考 `./ppt-tools/layouts.js` 中的版式坐标作为指引（非强制）
 - 排版美观原则见下方「排版指引」
+- **字体风险**：依赖用户本地字体，缺失会导致走样
 
 输出：
-- PPTX: `./output/{项目名}-deck.pptx`
-- PDF: `./output/{项目名}-deck.pdf`
+- PPTX: `PP评估/decks/{项目名}-deck-v{n}.pptx`
+- PDF: `PP评估/decks/{项目名}-deck-v{n}.pdf`
 
-#### 模式 B：网页 HTML Deck（`--format html`）
+#### 模式 C：网页 HTML Deck（`--format html`）
 
 参考风格（非强制，按项目调整）：
-- 字体：Inter + Noto Sans SC
+- 字体：Inter + Noto Sans SC（Google Fonts CDN 加载，无本地依赖）
 - 深色底 + 高对比强调色（金/蓝/绿）
 - clamp() 响应式字号，标题 2-3.5rem，正文 0.9-1.1rem
 - 底部留 25% 安全区，内容区最大宽度 1000px
-- 参考范例：`./output/潇湘智控-路演日Deck-v1.html`
+- 参考范例：`PP评估/decks/潇湘智控-路演日Deck-v1.html`
 
-输出：单 HTML 文件 → `./output/{项目名}-deck.html`
+输出：单 HTML 文件 → `PP评估/decks/{项目名}-deck-v{n}.html`
 
 ### Phase 4: 迭代打磨（Iterate）
 
@@ -280,9 +387,9 @@ tags:
 | 记忆点 | Pass/Fail | ... |
 
 ## 文件输出
-- PPTX: `./output/xxx-deck.pptx`
-- PDF: `./output/xxx-deck.pdf`
-- HTML: `./output/xxx-deck.html`（仅 --format html 时）
+- PPTX: `PP评估/decks/{项目名}-deck-v{n}.pptx`
+- PDF: `PP评估/decks/{项目名}-deck-v{n}.pdf`
+- HTML: `PP评估/decks/{项目名}-deck-v{n}.html`（仅 --format html 时）
 ```
 
 ## 审阅诊断依据
@@ -336,32 +443,95 @@ tags:
 ### 排版指引（生成时作为 prompt 参考，非代码硬约束）
 
 **字号层级**（追求层次感，不要所有文字一样大）：
-- 封面标题：44-48pt
-- 页面标题：28-32pt
-- 正文/要点：20-24pt
-- 说明/注释：16-18pt
-- 页码：12pt
+- 封面标题：36-44pt
+- 页面标题：24-30pt
+- 正文/要点：14-18pt
+- 说明/注释：12-14pt
+- 页码：10pt
+
+> ⚠️ 飞书 Slides 字号比 PPTX/HTML 显示更大（960px 画布 vs 1920px 屏），
+> 相同数值在飞书中视觉效果约为 PPTX 的 1.3 倍。生成飞书 Slides 时字号要偏小。
 
 **空间分配**：
 - 内容集中在页面上方 70%，底部 30% 留白（路演厅前排观众会遮挡）
-- 左右边距 ≥ 8%
+- 左右边距 ≥ 80px（960px 画布的 ~8%）
 - 元素之间留足呼吸空间，不要贴着放
 - 单页信息点 ≤ 5 个
 
+**排版模式（二选一）**：
+- **左对齐**（默认）：标题 + 正文统一左对齐，阅读节奏流畅，适合信息密集页
+- **居中**：封面、关键数据页、金句页可用居中排版，制造视觉冲击
+
+**布局策略（防空间浪费，核心规则）**：
+
+根据每页信息量自动选择布局，**严禁出现"内容全堆左侧、右侧大面积空白"的情况**：
+
+| 信息量 | 推荐布局 | 宽度利用 |
+|--------|---------|---------|
+| ≤2 条关键信息 | 居中大字 + 大量留白 | 内容区居中，宽度 500-700px |
+| 3-5 条并列信息 | 卡片网格（2×2 或 1+2×2） | 铺满 720px 内容区（左右各留 120px） |
+| 6+ 数据点 | 2×3 或 3×2 网格 | 铺满 800px（左右各留 80px） |
+| 对比类（A vs B） | 左右双栏，等宽 | 各占 ~380px，中间 20px gap |
+| 流程类（步骤） | 水平 flow + 箭头 | 等宽等距，铺满可用宽度 |
+| 人物/团队介绍 | 居中标题 + 卡片网格 | 姓名居中，能力/经历用卡片铺满 |
+| 列表（bullet points） | 居中标题 + 宽文本框 | 文本框宽度 ≥ 700px，不要窄到只占半页 |
+
+**常见布局错误（严禁）**：
+1. ❌ 内容全部 topLeftX=80 左对齐，右侧 400px+ 完全空白
+2. ❌ 列表项用窄文本框（width < 500），导致右半页浪费
+3. ❌ 标题左对齐但正文居中（或反过来），视觉不统一
+4. ❌ 所有页面用同一种布局（全部左对齐 bullets），缺乏节奏变化
+5. ❌ 数据网格各列宽度不等、间距不一致
+
+**正确做法**：
+- 人物介绍页：姓名/角色居中 → 能力卡片 2×2 或 2×3 网格铺满
+- 数据页：标题居中 → 数据网格等间距、等列宽、严格对齐
+- 故事/时间线页：左侧数字 + 右侧说明，数字右对齐、说明左对齐、两者边界统一
+- 对比页：左右完全对称，标题居中
+
+**飞书 Slides 专用坐标参考**（960×540 画布）：
+
+| 布局类型 | 内容区 X 范围 | 内容区 Y 范围 | 示例 |
+|---------|-------------|-------------|------|
+| 全宽居中 | 80-880 | 40-380 | 封面、愿景金句 |
+| 三列网格 | 80/350/620 (各 w=260) | 90-320 | 数据指标、三卡片 |
+| 两列对比 | 80/500 (各 w=380) | 160-380 | Before/After |
+| 大数字+说明 | 数字 80-240, 说明 260-880 | 每行高 60-80 | 故事页 |
+| 居中卡片组 | 120-840 (总 w=720) | 150-380 | 人物/能力展示 |
+
+**分栏规则**：
+- 仅在**对比场景**允许分栏（Before vs After、竞品对比、方案A vs B）
+- 禁止无对比语义的并列分栏（容易显得杂乱、信息分散）
+- 单栏通篇为默认，除非内容天然是对比结构
+
+**图标/Icon 使用规则**：
+- **非必要禁止使用 icon**——icon 堆砌是典型 AI 生成感的来源
+- 唯一允许场景：icon 确实比文字更高效传达语义（如对勾/叉表示功能对比、箭头表示流程方向）
+- 禁止：bullet 前加装饰 icon、每个要点配一个 icon、用 icon 做页面点缀
+- 替代方案：用**数据**、**留白**、**字号层级**、**颜色强调**来建立视觉节奏
+
 **对齐与美观**：
-- 同一页的文字框左边缘对齐
-- 相邻元素间距保持一致（≥ 0.2in）
+- 同一页的文字框左边缘对齐（或统一居中）
+- 相邻元素间距保持一致（飞书 Slides 中 ≥ 15px）
 - 文字框不要互相重叠
 - 内容少时大胆留白，不要为了填满而堆砌
 - Bullet 要点每页 3-4 条为佳，每条简短有力
+- **网格布局必须严格等间距、等列宽**——差 1px 都会显得不专业
 
 ## 使用示例
 
 ```
-# 制作模式
+# 制作模式（默认输出飞书 Slides）
 /pre-PP Meridian 帮我从零做一个5分钟路演deck
 /pre-PP VoiceCursor 基于最新OH内容更新deck
 /pre-PP 潇湘智控 --format html 生成HTML预览版
+/pre-PP 慧化科技 --format pptx 生成本地PPTX文件
+
+# 转换已有 HTML deck 到飞书 Slides
+/pre-PP StudySpace 把 PP评估/decks/StudySpace-deck-v2.html 转成飞书slides
+
+# 编辑已有飞书 Slides
+/pre-PP Meridian 帮我改这个飞书slides的第3页 https://miracleplus.feishu.cn/slides/xxx
 
 # 审阅模式（提供已有 PDF/PPT）
 /pre-PP 慧化科技 帮我看看这个deck哪里需要改 [附件: deck.pdf]
@@ -379,8 +549,8 @@ tags:
 
 ## 补充说明
 
-- 所有输出文件保存到 `./output/{项目名}-deck-v{n}.[pptx|pdf|html]`
-- 迭代记录保存到 `./output/{项目名}-deck-v{n}.md`
+- 所有输出文件保存到 `/home/ubuntu/AI_First/PP评估/decks/{项目名}-deck-v{n}.[pptx|pdf|html]`
+- 迭代记录保存到 `/home/ubuntu/AI_First/PP评估/decks/{项目名}-deck-v{n}.md`
 - S26 项目自动加载最新 OH 上下文
 - 首次制作会执行需求澄清（风格/受众/时长/素材）
 - 输出的 HTML deck（--format html）可直接在浏览器全屏演示
@@ -542,7 +712,7 @@ bash setup.sh
 | Node | pptxgenjs | 程序化生成 PPTX |
 | Node | sharp | 图片处理/渐变预渲染 |
 | Node | playwright + chromium | HTML 截图转 PPTX |
-| Node | lucide-static | 图标素材 |
+| Node | lucide-static | 图标素材（仅对比/流程图场景可用，默认不使用） |
 
 ### 环境变量
 
@@ -552,7 +722,7 @@ export NODE_PATH=<skill_dir>/ppt-tools/node_modules
 
 ### 输出目录
 
-生产环境输出到：`<项目根>/PP评估/decks/`
+所有输出统一放到：`/home/ubuntu/AI_First/PP评估/decks/`
 - PPTX: `{项目名}-deck-v{n}.pptx`（默认）
 - PDF: `{项目名}-deck-v{n}.pdf`（默认）
 - HTML: `{项目名}-deck-v{n}.html`（--format html）
