@@ -764,40 +764,14 @@ export NODE_PATH=<skill_dir>/ppt-tools/node_modules
 - HTML: `{项目名}-deck-v{n}.html`（--format html）
 - 迭代记录: `{项目名}-deck-v{n}.md`
 
-### 安装验证 Checklist
+### 环境自检
 
-`setup.sh` 执行完毕后，按以下清单确认环境就绪：
+本地渲染（PPTX/PDF/HTML）需要字体和 Chromium。首次安装后运行：
 
-| # | 检查项 | 验证命令 | 预期结果 |
-|---|--------|---------|---------|
-| 1 | 中文字体 | `fc-list :lang=zh \| wc -l` | ≥ 1（推荐 ≥ 4） |
-| 2 | python-pptx | `python3 -c "import pptx; print(pptx.__version__)"` | ≥ 0.6.21 |
-| 3 | markitdown | `python3 -c "import markitdown; print('OK')"` | OK |
-| 4 | Node ≥ 18 | `node --version` | v18.x 或更高 |
-| 5 | pptxgenjs | `node -e "require('./ppt-tools/node_modules/pptxgenjs')"` | 无报错 |
-| 6 | sharp | `node -e "require('./ppt-tools/node_modules/sharp')"` | 无报错 |
-| 7 | Chromium | `npx --prefix ./ppt-tools playwright install --dry-run chromium` | 已安装或 "browsers are up to date" |
-| 8 | 输出目录 | `ls PP评估/decks/` | 目录存在 |
-| 9 | 迭代日志 | `cat PP评估/decks/pre-pp-log.md` | 文件存在，有 header |
-| 10 | log-entry.sh | `bash log-entry.sh --help 2>&1 \| head -1` | 显示用法提示 |
-
-**常见问题排查**：
-
-| 症状 | 原因 | 解决 |
-|------|------|------|
-| PDF/PPTX 中文乱码 | 缺中文字体 | `sudo apt install fonts-noto-cjk` 或手动下载到 `~/.local/share/fonts/` |
-| `sharp` 报 `libvips` 错误 | 系统缺依赖 | `npm rebuild sharp --prefix ./ppt-tools` |
-| Chromium 启动失败 | 缺 shared libs | `npx --prefix ./ppt-tools playwright install-deps chromium` |
-| `node: command not found` | 未装 Node | `curl -fsSL https://deb.nodesource.com/setup_20.x \| sudo bash - && sudo apt install -y nodejs` |
-| pip 报 `externally-managed` | Python 3.12+ | 加 `--break-system-packages` 或用 venv |
-| 输出目录权限不足 | 无写权限 | `mkdir -p ./output && export PRE_PP_OUTPUT=./output` |
-
-**最小运行环境**（跳过可选项）：
-
-如果只需要飞书 Slides 输出（不需要本地 PPTX/PDF），可以跳过字体和 Chromium：
 ```bash
-pip3 install python-pptx markitdown
-cd ppt-tools && npm install --production --ignore-scripts  # 跳过 sharp native build
+bash verify.sh        # 检查环境
+bash verify.sh --fix  # 自动修复缺失项
 ```
-飞书 Slides 通过 API 渲染，不依赖本地字体和浏览器。
+
+> 若仅使用飞书 Slides 输出（默认），可跳过字体和 Chromium，`verify.sh` 会标记为"可选"。
 
