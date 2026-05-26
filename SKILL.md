@@ -361,6 +361,42 @@ lark-cli drive permission.members create --as bot \
 - [ ] 包含真实产品照片（实物/截图/demo），不能只有文本和图标
 - [ ] 包含团队真人照片，不能用占位符或姓氏首字母代替
 - [ ] 大屏幕测试：正文在 3 米外清晰可读（字号、对比度、颜色均需达标）
+- [ ] 迭代日志已更新（pre-pp-log.md）
+
+### Phase 6: 迭代日志（Iteration Log）
+
+**（必须执行，所有 agent 平台通用）**
+
+每次完成 deck 输出后（Phase 3 或 Phase 4 迭代后），追加一条记录到 `pre-pp-log.md`。
+
+**日志文件位置**：与输出 deck 文件同目录（通常是 `PP评估/decks/pre-pp-log.md`）。
+
+**写入方式**（二选一）：
+1. 调用辅助脚本：`bash <skill_dir>/log-entry.sh <log_file> <project> <version> <mode> <query> --output <files...> --slides-url <url>`
+2. 直接追加 markdown 到日志文件（格式如下）
+
+**日志条目格式**：
+```markdown
+---
+
+## {项目名} - v{版本号} | {YYYY-MM-DD HH:MM}
+
+- **Query**: {用户原始输入，截取前 200 字}
+- **Mode**: 制作 / 审阅 / 规划
+- **Output**:
+  - `{文件名1.html}`
+  - `{文件名2.pptx}`
+  - 飞书 Slides: {URL}（如有）
+- **Changes**: {本轮变更摘要，1-2 句}
+```
+
+**触发规则**：
+- Phase 3 首次输出 → 记录（v1）
+- Phase 4 每轮迭代完成 → 记录（v2, v3, ...）
+- 审阅模式仅产出建议不生成文件时 → 不记录
+
+**Pre-flight 检查项追加**：
+- [ ] 迭代日志已更新（pre-pp-log.md）
 
 ## 输出格式
 
