@@ -1,6 +1,6 @@
 ---
 name: pre-pp
-version: 1.0.0
+version: 1.1.0
 author: MiraclePlus CC Team
 description: >-
   Pre Pitch Practice — 路演PPT迭代助手
@@ -21,6 +21,19 @@ tags:
 ---
 
 # pre-PP — 路演PPT迭代助手
+
+## Preamble (run first)
+
+```bash
+_SKILL_DIR="$(find .claude/skills/pre-pp -maxdepth 0 2>/dev/null && echo ".claude/skills/pre-pp" || echo "$HOME/.claude/skills/pre-pp")"
+mkdir -p ~/.pre-pp/logs
+_UPD=$(bash "$_SKILL_DIR/version-check.sh" 2>/dev/null || true)
+[ -n "$_UPD" ] && echo "$_UPD" || true
+```
+
+If output shows `UPGRADE_AVAILABLE <old> <new>`: inform user that a newer version is available and suggest running `cd "$_SKILL_DIR" && curl -sL "https://api.github.com/repos/MiraclePlus/pre-pp/tarball/main" | tar xz --strip-components=1` to upgrade. Then continue with the task regardless.
+
+If output shows `UP_TO_DATE` or is empty: proceed silently.
 
 ## 概述
 
@@ -221,6 +234,66 @@ tags:
 - 总页数 10-14 页（2分钟pitch = 骨架，5分钟pitch = 完整叙事）
 - 必须有用户确认后才进入制作阶段
 
+### Phase 1.5: 讲稿内容优化（Content Iteration）
+
+**新增功能**：基于 2025S 奇绩创坛 57 个项目路演讲稿的最佳实践，自动优化讲稿内容。
+
+**触发时机**：
+- 审阅模式（Phase 0B）自动执行
+- 制作模式用户确认大纲后自动执行
+- 用户明确要求"优化讲稿内容"、"让讲稿更吸引人"时执行
+
+**优化规则**（详见 `references/pitch-content-rules.md`）：
+
+#### 1. 第一页黄金规则
+- **必须有简单易懂的产品定位**：用类比法（"XX行业的Cursor"、"AI时代的企业黑客"）
+- **5秒记忆测试**：投资人听完能否立刻转述？
+- **避免术语堆砌**：不要用"平台"、"系统"、"方案"等虚词
+
+#### 2. 前三页30秒记忆测试
+- 第1页：产品是什么（简单类比）
+- 第2页：解决什么问题（具体场景+数据）
+- 第3页：如何解决（核心能力+对比数据）
+
+#### 3. 吸睛度检查（6种钩子）
+每页必须有至少1个"钩子"，防止台下投资人玩手机：
+- 震撼数据："164亿美金"、"覆盖率提升3倍"
+- 对比反差："他们7000万18个月 vs 我们3000美金1周"
+- 反常识洞察："60%的提示词其实并非必要"
+- 视觉冲击：产品demo、数据曲线
+- 具体场景："GitHub因为MCP漏洞泄漏代码"
+- 未来愿景："十年之后会比Salesforce做得更大"
+
+#### 4. 虚实结合叙事
+- **前6页讲实在的**：产品定义、具体痛点、核心能力、数据验证
+- **后3-4页讲升华的**：团队愿景、市场想象空间、使命宣言
+
+**输出格式**：
+```markdown
+## 讲稿内容优化建议
+
+### 第一页优化
+**当前**: "XXX智能系统"
+**建议**: "XX行业的Cursor — 让XX从XX小时缩短到XX分钟"
+**理由**: 用类比法让投资人一眼看懂
+
+### 前三页记忆测试
+- ✅ 第1页：产品定位清晰
+- ⚠️ 第2页：缺少具体场景和数据
+- ❌ 第3页：无对比数据，无法体现优势
+
+### 吸睛度检查
+| 页码 | 钩子类型 | 状态 | 建议 |
+|------|---------|------|------|
+| 1 | 简单类比 | ❌ | 改为"XX行业的Cursor" |
+| 2 | 具体数据 | ⚠️ | 补充"去年XX公司因此损失XX亿" |
+| 3 | 对比反差 | ✅ | 已有"速度提升10倍" |
+
+### 虚实结合检查
+- ✅ 前6页：数据充足，实在
+- ❌ 后4页：缺少愿景升华，建议在第9页加入长期愿景
+```
+
 ### Phase 2: 内容填充（Content）
 
 逐页填写：
@@ -229,7 +302,7 @@ tags:
 - **支撑数据**：具体数字、案例、截图描述
 - **视觉指引**：图/表/截图/对比图/流程图
 
-**写作标准**（详见 `references/pp-diagnostic-handbook.md`）：
+**写作标准**（详见 `references/pp-diagnostic-handbook.md` 和 `references/pitch-content-rules.md`）：
 - 单页文字 ≤ 80 字，正文字号不能太小
 - 一页一重点，信息点 ≤ 5 个
 - 数据 > 形容词，断言 > 论证
@@ -367,12 +440,12 @@ lark-cli drive permission.members create --as bot \
 
 **（必须执行，所有 agent 平台通用）**
 
-每次完成 deck 输出后（Phase 3 或 Phase 4 迭代后），追加一条记录到 `pre-pp-log.md`。
+每次完成 deck 输出后（Phase 3 或 Phase 4 迭代后），追加一条记录到 `~/.pre-pp/logs/{项目名}.md`。
 
-**日志文件位置**：与输出 deck 文件同目录（通常是 `PP评估/decks/pre-pp-log.md`）。
+**日志文件位置**：`~/.pre-pp/logs/{项目名}.md`（每个项目独立一个日志文件，统一存放在 `~/.pre-pp/logs/`）。
 
 **写入方式**（二选一）：
-1. 调用辅助脚本：`bash <skill_dir>/log-entry.sh <log_file> <project> <version> <mode> <query> --output <files...> --slides-url <url>`
+1. 调用辅助脚本：`bash <skill_dir>/log-entry.sh ~/.pre-pp/logs/{项目名}.md <project> <version> <mode> <query> --output <files...> --slides-url <url>`
 2. 直接追加 markdown 到日志文件（格式如下）
 
 **日志条目格式**：
@@ -478,15 +551,20 @@ lark-cli drive permission.members create --as bot \
 
 ### 排版指引（生成时作为 prompt 参考，非代码硬约束）
 
-**字号层级**（追求层次感，不要所有文字一样大）：
-- 封面标题：36-44pt
-- 页面标题：24-30pt
-- 正文/要点：14-18pt
-- 说明/注释：12-14pt
-- 页码：10pt
+**字号层级**（路演日大屏必须后排可读，这是硬性底线）：
 
-> ⚠️ 飞书 Slides 字号比 PPTX/HTML 显示更大（960px 画布 vs 1920px 屏），
-> 相同数值在飞书中视觉效果约为 PPTX 的 1.3 倍。生成飞书 Slides 时字号要偏小。
+> ⚠️ **最低字号规则（强制执行）**：正文/要点 ≥ 24pt，任何页面不得出现低于 18pt 的文字。
+> 路演现场后排观众距屏幕 15-20 米，小于 24pt 的正文在大屏上几乎不可读。
+> 宁可减少每页信息量，也不能缩小字号。
+
+- 封面标题：48-54pt
+- 页面标题：30-36pt
+- 正文/要点：**24-28pt**（硬性最低 24pt）
+- 说明/注释：18-20pt（硬性最低 18pt）
+- 页码：不显示（路演 deck 无需页码）
+
+> 飞书 Slides 960px 画布下，上述字号视觉效果约等于 PPTX 中放大 1.3 倍。
+> 如果每页信息放不下，优先拆页，而非缩小字号。
 
 **空间分配**：
 - 内容集中在页面上方 70%，底部 30% 留白（路演厅前排观众会遮挡）

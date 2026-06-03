@@ -3,7 +3,7 @@
 # 用法: bash log-entry.sh <log_file> <project> <version> <mode> <query> [--output file1 file2 ...] [--slides-url URL]
 #
 # 示例:
-#   bash log-entry.sh ./pre-pp-log.md "Meridian" "v1" "制作" "帮我做一个5分钟路演deck" \
+#   bash log-entry.sh ~/.pre-pp/logs/Meridian.md "Meridian" "v1" "制作" "帮我做一个5分钟路演deck" \
 #     --output Meridian-deck-v1.html --slides-url "https://xxx.feishu.cn/slides/xxx"
 set -e
 
