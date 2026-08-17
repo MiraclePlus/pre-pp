@@ -228,7 +228,7 @@ Claude 对照 pp-diagnostic-handbook.md 的 6 维度逐页诊断
 
 ### PP 诊断手册（6 维度）
 
-来源：[MPR | 校友PP参考手册(F25)](https://miracleplus.feishu.cn/wiki/IQLuwdguhisFCukAAXCcq31SnDP)
+来源：内部 Pitch Practice 方法论整理稿（公开版不包含私有文档链接）
 
 | 维度 | 检查重点 | 典型问题 |
 |------|---------|---------|
@@ -257,8 +257,8 @@ Claude 对照 pp-diagnostic-handbook.md 的 6 维度逐页诊断
 export NODE_PATH=<skill_dir>/ppt-tools/node_modules
 
 # 可选（项目上下文相关）
-export LARK_APP_ID=cli_a93d24bb57fe5bd4        # 飞书 MetaBot
-export LARK_APP_SECRET=...                      # 飞书密钥
+export LARK_APP_ID=<your_lark_app_id>              # 可选：飞书应用 ID
+export LARK_APP_SECRET=<your_lark_app_secret>      # 可选：飞书应用密钥
 ```
 
 ## 8. 部署检查清单

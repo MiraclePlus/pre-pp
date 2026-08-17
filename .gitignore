@@ -1,1 +1,15 @@
 node_modules/
+.cache/
+.DS_Store
+*.log
+.env
+.env.*
+!.env.example
+PP评估/
+decks/
+*.pptx
+*.pdf
+*.png
+*.jpg
+*.jpeg
+*.gif

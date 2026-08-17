@@ -3,7 +3,7 @@
 > 用于在新电脑上验证 pre-pp skill 完整流程。每个 prompt 模拟创始人首次请求制作 deck 的真实场景。
 > 测试前确保已运行 `cd pre-pp && bash setup.sh`
 
-**路演PPT模板**：https://miracleplus.feishu.cn/file/boxcnMotmaGURmoDUbLJ13hlYvg
+**路演PPT模板**：https://example.com/pitch-template
 
 模板结构参考（40页素材库，按需选用）：
 1. 封面（公司名+一句话）
@@ -24,7 +24,7 @@
 ```
 帮我制作一个5分钟路演PPT，我们项目叫 FoodPal（食伴科技），做面向吞咽障碍人群的AI就餐辅助系统。
 
-请参考我们的路演模板：https://miracleplus.feishu.cn/file/boxcnMotmaGURmoDUbLJ13hlYvg
+请参考我们的路演模板：https://example.com/pitch-template
 
 ### 项目核心信息
 
@@ -94,7 +94,7 @@
 ```
 帮我制作一个路演deck，我是CoCube桌面级AI教育机器人的创始人梁帅。公司全称上海秉穹教育科技有限公司，成立于2020年。
 
-请参考我们的路演模板：https://miracleplus.feishu.cn/file/boxcnMotmaGURmoDUbLJ13hlYvg
+请参考我们的路演模板：https://example.com/pitch-template
 
 ### 项目核心信息
 
@@ -172,7 +172,7 @@ Max 要求的PPT风格：
 ```
 帮我做一个2分钟路演PPT，我是华航轻舟的CEO杨吉凯，我们用模组化方案赋能水域承包商，让高性能无人船开发没有门槛。
 
-请参考我们的路演模板：https://miracleplus.feishu.cn/file/boxcnMotmaGURmoDUbLJ13hlYvg
+请参考我们的路演模板：https://example.com/pitch-template
 
 ### 项目核心信息
 

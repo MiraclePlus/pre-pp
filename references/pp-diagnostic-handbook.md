@@ -1,7 +1,6 @@
 # PP 诊断手册 — 路演 Pitch 常见问题分类与案例库
 
-> 来源：MPR | 校友PP参考手册(F25)
-> 飞书文档：https://miracleplus.feishu.cn/wiki/IQLuwdguhisFCukAAXCcq31SnDP
+> 来源：内部 Pitch Practice 方法论整理稿（公开版不包含私有文档链接）
 
 本文档是 pre-PP 审阅模式的核心诊断依据。按 6 大故事线维度组织，每个维度下列举常见问题类型及真实案例。
 
